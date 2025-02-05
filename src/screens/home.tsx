@@ -1,16 +1,21 @@
 import { View, Text, SafeAreaView } from 'react-native'
 import React from 'react'
-import Calender from '../components/calender'
+import MyCalendar from '../components/calendar'
 
 const Home = () => {
   return (
     <SafeAreaView>
-      <Calender
-        hasRange
+      <MyCalendar
+      hasRange
       // nextActiveDays={15}
       // todayTextColor='red'
-      // disableWeekDays
-      // disableOldDates
+      // disableWeekends
+      // disablePrevDates
+      // rangeDateColor='red'
+      // selectedColor='red'
+      // startingDayColor='red'
+      // endingDayColor='blue'
+      // hideExtraDays
       />
     </SafeAreaView>
   )

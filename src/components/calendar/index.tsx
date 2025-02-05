@@ -1,50 +1,52 @@
 import React, { useMemo, useRef, useState } from 'react';
-import { Calendar, CalendarProps, CalendarUtils } from 'react-native-calendars';
+import { Calendar, CalendarUtils } from 'react-native-calendars';
 import styles from './styles';
 import CustomModal from './component/modal';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
 import { icons } from '../../assets/icons';
+import { dayNames, months, years } from '../../utils/calendarUtils';
+import { CustomCalendarProps, MarkedDates } from './@types';
 
-interface CustomCalenderProps extends CalendarProps {
-    hasRange?: boolean;
-    nextActiveDays?: number;
-    todayTextColor?:string;
-    disableWeekDays?:boolean;
-    disableOldDates?:boolean;
-}
-
-interface MarkedDates {
-    [date: string]: {
-        selected: boolean;
-        startingDay?: boolean;
-        endingDay?: boolean;
-        color: string;
-        textColor?: string; 
-        disableTouchEvent?: boolean;
-    };
-}
-
-const Calender: React.FC<CustomCalenderProps> = ({ hasRange, nextActiveDays,todayTextColor='#00adf5',disableWeekDays=false,disableOldDates=false,...props }) => {
+const MyCalendar: React.FC<CustomCalendarProps> = ({
+    hasRange,
+    nextActiveDays,
+    todayTextColor = '#00adf5',
+    disableWeekends = false,
+    disablePrevDates = false,
+    rangeDateColor = 'lightgreen',
+    selectedColor,
+    startingDayColor = 'green',
+    endingDayColor = 'green',
+    ...props
+}) => {
     const [selectedStartDate, setSelectedStartDate] = useState<string>('');
     const [selectedEndDate, setSelectedEndDate] = useState<string>('');
     const [isVisible, setIsVisible] = useState<boolean>(false);
     const [dropdownVisible, setDropdownVisible] = useState(false);
     const [dropdownVisible1, setDropdownVisible1] = useState(false);
-    const months = [
-        "01", "02", "03", "04", "05", "06",
-        "07", "08", "09", "10", "11", "12"
-    ];
-    const years = [
-        "2015", "2016", "2017", "2018", "2019", "2020",
-        "2021", "2022", "2023", "2024", "2025", "2026",
-        "2027", "2028", "2029", "2030", "2031", "2032",
-        "2033", "2034", "2035",
-    ];
-    const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat','Sun'];
+    const INITIAL_DATE = new Date().toISOString().split('T')[0];
+    const customHeaderProps: any = useRef();
 
-    const toggleCalender = () => {
+    const toggleCalendar = () => {
         setIsVisible((prev) => !prev);
     };
+
+    const formatMonth = (date: string) => {
+        const month = new Date(date);
+        const monthString = months[month.getMonth()];
+        const year = month.getFullYear();
+        return `${monthString}-${year}`;
+    };
+
+    const [currentMonth, setCurrentMonth] = useState(formatMonth(INITIAL_DATE));
+
+
+    const getDate = (count: number | undefined) => {
+        const date = new Date(INITIAL_DATE);
+        const newDate = count != undefined ? date.setDate(date.getDate() + count) : '';
+        return CalendarUtils.getCalendarDateString(newDate);
+    };
+    const str = nextActiveDays != undefined ? getDate(nextActiveDays) : '';
 
     const rangeDayPress = (day: { dateString: string }) => {
         if (selectedStartDate && selectedEndDate) {
@@ -63,54 +65,36 @@ const Calender: React.FC<CustomCalenderProps> = ({ hasRange, nextActiveDays,toda
         setSelectedStartDate(day.dateString);
     };
 
-
-
     const getDatesInRange = (startDate: string, endDate: string): string[] => {
         const dates: string[] = [];
         const currentDate = new Date(startDate);
         const end = new Date(endDate);
-
         while (currentDate <= end) {
             dates.push(CalendarUtils.getCalendarDateString(currentDate));
             currentDate.setDate(currentDate.getDate() + 1);
         }
-
         return dates;
     };
 
     const markedDates: MarkedDates = useMemo(() => {
         const marked: MarkedDates = {};
-
         if (selectedStartDate) {
-            marked[selectedStartDate] = { selected: true, startingDay: true, color: 'green' };
+            marked[selectedStartDate] = { selected: true, startingDay: true, color: startingDayColor };
         }
-
         if (selectedEndDate) {
-            marked[selectedEndDate] = { selected: true, endingDay: true, color: 'green' };
+            marked[selectedEndDate] = { selected: true, endingDay: true, color: endingDayColor };
         }
-
         if (selectedStartDate && selectedEndDate) {
             const datesInRange = getDatesInRange(selectedStartDate, selectedEndDate);
             datesInRange.forEach((date) => {
                 if (date !== selectedStartDate && date !== selectedEndDate) {
-                    marked[date] = { selected: true, color: 'lightgreen' };
+                    marked[date] = { selected: true, color: rangeDateColor };
                 }
             });
         }
         return marked;
     }, [selectedStartDate, selectedEndDate]);
 
-
-    const formatMonth = (date: string) => {
-        const month = new Date(date);
-        const monthString = (month.getMonth() + 1).toString().padStart(2, '0');
-        const year = month.getFullYear();
-        return `${monthString}-${year}`;
-    };
-
-    const INITIAL_DATE = new Date().toISOString().split('T')[0];
-    const [currentMonth, setCurrentMonth] = useState(formatMonth(INITIAL_DATE));
-    const customHeaderProps: any = useRef();
 
     const setCustomHeaderNewMonth = (next = false, num = 1) => {
         const add = next ? num : -num;
@@ -120,6 +104,7 @@ const Calender: React.FC<CustomCalenderProps> = ({ hasRange, nextActiveDays,toda
         customHeaderProps?.current?.addMonth(add);
         setCurrentMonth(formatMonth(newMonth.toISOString().split('T')[0]));
     };
+
     const moveNext = () => {
         setCustomHeaderNewMonth(true, 1);
     };
@@ -129,16 +114,21 @@ const Calender: React.FC<CustomCalenderProps> = ({ hasRange, nextActiveDays,toda
     const openMonth = () => {
         setDropdownVisible(!dropdownVisible);
     };
+    const openYear = () => {
+        setDropdownVisible1(!dropdownVisible1);
+    };
+
+    const getMonthNumber = (monthString: string) => {
+        console.log(monthString)
+        return months.indexOf(monthString);
+    };
     const [currentMonthStr, currentYearStr] = currentMonth.split('-');
     const selectMonth = (item: string) => {
-        const currentMonthNumber = parseInt(currentMonthStr, 10);
+        const currentMonthNumber = getMonthNumber(currentMonthStr);
         const currentYearNumber = parseInt(currentYearStr, 10);
-
-        const target = parseInt(item);
-        let monthDifference = target - currentMonthNumber;
-        let yearDifference = target - currentYearNumber;
-
-        if (item.length == 2) {
+        if (item.length == 3) {
+            const target = getMonthNumber(item);
+            let monthDifference = target - currentMonthNumber;
             if (monthDifference < 0) {
                 setCustomHeaderNewMonth(false, Math.abs(monthDifference));
             } else {
@@ -146,6 +136,8 @@ const Calender: React.FC<CustomCalenderProps> = ({ hasRange, nextActiveDays,toda
             }
             setDropdownVisible(false);
         } else {
+            const target = parseInt(item);
+            let yearDifference = target - currentYearNumber;
             if (yearDifference < 0) {
                 setCustomHeaderNewMonth(false, 12 * Math.abs(yearDifference));
             } else {
@@ -155,22 +147,8 @@ const Calender: React.FC<CustomCalenderProps> = ({ hasRange, nextActiveDays,toda
         }
     };
 
-
-    const openYear = () => {
-        setDropdownVisible1(!dropdownVisible1);
-    };
-    const getDate = (count: number | undefined) => {
-        const date = new Date(INITIAL_DATE);
-        const newDate = count != undefined ? date.setDate(date.getDate() + count) : '';
-        return CalendarUtils.getCalendarDateString(newDate);
-    };
-
-    const str = nextActiveDays != undefined ? getDate(nextActiveDays) : '';
-
-
     const CustomHeader = React.forwardRef((props, ref) => {
         customHeaderProps.current = props;
-
         return (
             // @ts-expect-error
             <View ref={ref} {...props} style={styles.customHeader}>
@@ -199,18 +177,12 @@ const Calender: React.FC<CustomCalenderProps> = ({ hasRange, nextActiveDays,toda
         );
     });
 
-
-
-
-
-
-
     return (
         <View style={styles.container}>
             <View style={styles.selectDateMainView}>
                 {hasRange ?
                     <React.Fragment>
-                        <TouchableOpacity style={styles.selectDateViewSize} onPress={toggleCalender}>
+                        <TouchableOpacity style={styles.selectDateViewSize} onPress={toggleCalendar}>
                             <View style={styles.selectDateView}>
                                 <Text style={styles.txt}>From</Text>
                                 {selectedStartDate === '' ? (
@@ -220,7 +192,7 @@ const Calender: React.FC<CustomCalenderProps> = ({ hasRange, nextActiveDays,toda
                                 )}
                             </View>
                         </TouchableOpacity>
-                        <TouchableOpacity style={styles.selectDateViewSize} onPress={toggleCalender}>
+                        <TouchableOpacity style={styles.selectDateViewSize} onPress={toggleCalendar}>
                             <View style={styles.selectDateView}>
                                 <Text style={styles.txt}>To</Text>
                                 {selectedEndDate === '' ? (
@@ -232,7 +204,7 @@ const Calender: React.FC<CustomCalenderProps> = ({ hasRange, nextActiveDays,toda
                         </TouchableOpacity>
                     </React.Fragment>
                     :
-                    <TouchableOpacity style={styles.selectDateViewSize} onPress={toggleCalender}>
+                    <TouchableOpacity style={styles.selectDateViewSize} onPress={toggleCalendar}>
                         <View style={styles.selectDateView}>
                             {selectedStartDate === '' ? (
                                 <Text style={styles.txt1}>Select date</Text>
@@ -252,38 +224,36 @@ const Calender: React.FC<CustomCalenderProps> = ({ hasRange, nextActiveDays,toda
                         style={styles.calView}
                         enableSwipeMonths
                         customHeader={CustomHeader}
-                        hideExtraDays
                         maxDate={str}
-                        minDate={disableOldDates ? INITIAL_DATE:''}
+                        minDate={disablePrevDates ? INITIAL_DATE : ''}
                         theme={{
                             calendarBackground: '#ffffff',
                             selectedDayTextColor: '#ffffff',
                             todayTextColor: todayTextColor,
                         }}
                         firstDay={1}
-                        disabledByWeekDays={disableWeekDays ? [6,0]:[]}
+                        disabledByWeekDays={disableWeekends ? [6, 0] : []}
                         disableAllTouchEventsForDisabledDays
                         {...props}
                     />
                 ) : (
                     <Calendar
                         markedDates={{
-                            [selectedStartDate]: { selected: true, disableTouchEvent: true }
+                            [selectedStartDate]: { selected: true, selectedColor: selectedColor, disableTouchEvent: true }
                         }}
                         onDayPress={sigleDayPress}
                         style={styles.calView}
                         enableSwipeMonths
                         customHeader={CustomHeader}
-                        hideExtraDays
                         maxDate={str}
-                        minDate={disableOldDates ? INITIAL_DATE:''}
+                        minDate={disablePrevDates ? INITIAL_DATE : ''}
                         theme={{
                             calendarBackground: '#ffffff',
                             selectedDayTextColor: '#ffffff',
                             todayTextColor: todayTextColor,
                         }}
                         firstDay={1}
-                        disabledByWeekDays={disableWeekDays ? [6,0]:[]}
+                        disabledByWeekDays={disableWeekends ? [6, 0] : []}
                         disableAllTouchEventsForDisabledDays
                         {...props}
                     />
@@ -304,5 +274,4 @@ const Calender: React.FC<CustomCalenderProps> = ({ hasRange, nextActiveDays,toda
         </View>
     );
 };
-
-export default Calender;
+export default MyCalendar;
