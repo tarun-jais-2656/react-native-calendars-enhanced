@@ -1,97 +1,191 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# React Native Calendar Enhanced 📅
 
-# Getting Started
+## A customizable React Native calendar component for iOS and Android.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+[![Version](https://img.shields.io/npm/v/react-native-calendars-enhanced.svg)](https://www.npmjs.com/package/react-native-calendars-enhanced)
+[![Build status](https://badge.buildkite.com/your-badge.svg)](https://buildkite.com/your-buildkite)
 
-## Step 1: Start Metro
+This module provides a customizable **React Native** calendar component with additional features like range selection, custom styling and month-year jump through list.
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+The package is compatible with both **Android** and **iOS**.
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+> ### **Official documentation**
+>
+> This README provides basic examples of how to get started with `react-native-calendars-enhanced`. For detailed information, refer to the [react-native-calendars-enhanced](https://github.com/tarun-jais-2656/react-native-calendars-enhanced).
 
-```sh
-# Using npm
-npm start
+## Features ✨
 
-# OR using Yarn
-yarn start
+- Pure JS/TS. No Native code required
+- Date marking with custom styles
+- Range selection support
+- Customizable header and appearance
+- Swipeable calendar with flexible custom rendering
+- Accessibility support
+- Month-year jump through list
+## Try it out ⚡
+
+You can run a sample module using these steps:
+bash
+$ git clone git@github.com:tarun-jais-2656/react-native-calendars-enhanced.git
+$ cd react-native-calendars-enhanced
+$ yarn install
+$ cd ios && pod install && cd ..
+$ react-native run-ios
+
+## Getting Started 🔧
+
+Here's how to get started with `react-native-calendars-enhanced` in your React Native project:
+
+### Install the package:
+
+```bash
+$ yarn add react-native-calendars-enhanced
 ```
 
-## Step 2: Build and run your app
+**This package is implemented in JavaScript/Typescript, so no native module linking is required.**
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
+## Usage 🚀
 
-### Android
+Basic usage examples of the library
 
-```sh
-# Using npm
-npm run android
+### Importing the `MyCalendar` component
 
-# OR using Yarn
-yarn android
+```javascript
+import MyCalendar from 'react-native-calendars-enhanced';
 ```
 
-### iOS
+### Use the `MyCalendar` component in your app:
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
+```javascript
+import React from 'react';
+import MyCalendar from 'react-native-calendars-enhanced';
 
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+const App = () => {
+  return (
+    <MyCalendar
+        hasRange
+        nextActiveDays={15}
+        todayTextColor='red'
+        disableWeekends
+        disablePrevDates
+        rangeDateColor='red'
+        selectedColor='red'
+        startingDayColor='red'
+        endingDayColor='blue'
+        hideExtraDays
+        getStartDate={(startDate) => {
+          console.log("Selected start date:", startDate);
+        }}
+        getEndDate={(endDate) => {
+          console.log("Selected end date:", endDate);
+        }}
+        getRange={(dates) => {
+          console.log("Selected date range:", dates);
+        }}
+    />
+  );
+};
 
-```sh
-bundle install
+export default App;
 ```
 
-Then, and every time you update your native dependencies, run:
+## Custom Props
 
-```sh
-bundle exec pod install
+### `CustomCalendarProps`
+
+```typescript
+interface CustomCalendarProps extends CalendarProps {
+    hasRange?: boolean; // Enables range selection mode
+    nextActiveDays?: number; // Number of days from today that are selectable
+    todayTextColor?: string; // Color for today's date text
+    disableWeekends?: boolean; // Disables selection of weekends
+    disablePrevDates?: boolean; // Disables selection of past dates
+    rangeDateColor?: string; // Color for dates within the selected range
+    selectedColor?: string; // Color for the selected date
+    startingDayColor?: string; // Color for the starting day of the range
+    endingDayColor?: string; // Color for the ending day of the range
+    dayNamesColor?:string; // Color for the day names   
+    weekendDaysColor?:string; // Color for the weekend days
+    headerTittleColor?:string; // Color for the header title
+    headerIconColor?:string; // Color for the header icon
+    getStartDate?: (startDate: string) => void; // Callback for when a start date is selected
+    getEndDate?: (endDate: string) => void; // Callback for when an end date is selected
+    getRange?: (dates: string[]) => void; // Callback for when a date range is selected
+}
 ```
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+### Prop Descriptions
 
-```sh
-# Using npm
-npm run ios
+- **hasRange**: A boolean that, when true, enables the range selection feature, allowing users to select a start and end date.
+- **nextActiveDays**: Specifies the number of days from the current date that are selectable. If not provided, all future dates are selectable.
+- **todayTextColor**: Sets the text color for today's date on the calendar.
+- **disableWeekends**: A boolean that, when true, disables the selection of weekend dates.
+- **disablePrevDates**: A boolean that, when true, prevents the selection of dates before the current date.
+- **rangeDateColor**: Defines the color for dates that fall within the selected range.
+- **selectedColor**: Sets the color for the currently selected date.
+- **startingDayColor**: Specifies the color for the starting day of a selected range.
+- **endingDayColor**: Specifies the color for the ending day of a selected range.
+- **dayNamesColor**: Color for the day names
+- **weekendDaysColor**: Color for the weekend days
+- **headerTittleColor**: Color for the header title
+- **headerIconColor**: Color for the header icon
+- **getStartDate**: A callback function that is triggered when a start date is selected, receiving the selected start date as a string.
+- **getEndDate**: A callback function that is triggered when an end date is selected, receiving the selected end date as a string.
+- **getRange**: A callback function that is triggered when a date range is selected, receiving an array of strings representing the selected dates.
 
-# OR using Yarn
-yarn ios
+### `CalendarProps`
+
+Refer to the [react-native-calendars documentation](https://wix.github.io/react-native-calendars/docs/Intro) for detailed information on `CalendarProps`.
+
+## Examples
+
+### Creating a basic calendar with range selection:
+
+```javascript
+import React from 'react';
+import MyCalendar from 'react-native-calendars-enhanced';
+
+const App = () => {
+  return (
+    <MyCalendar
+      hasRange={true}
+      rangeDateColor='red'
+      selectedColor='red'
+      startingDayColor='red'
+      endingDayColor='blue'
+      getStartDate={(startDate) => {
+        console.log("Selected start date:", startDate);
+      }}
+      getEndDate={(endDate) => {
+        console.log("Selected end date:", endDate);
+      }}
+      getRange={(dates) => {
+        console.log("Selected date range:", dates);
+      }}
+    />
+  );
+};
+
+export default App;
 ```
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+### Customize the appearance of the calendar:
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+```javascript
+<MyCalendar
+  style={{
+    borderWidth: 1,
+    borderColor: 'gray',
+    height: 350
+  }}
+  theme={{
+    calendarBackground: '#ffffff',
+    selectedDayTextColor: '#ffffff',
+    todayTextColor: '#00adf5',
+  }}
+/>
+```
 
-## Step 3: Modify your app
+## License
 
-Now that you have successfully run the app, let's make changes!
-
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
-
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
-
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
-
-## Congratulations! :tada:
-
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+Your package is MIT licensed.

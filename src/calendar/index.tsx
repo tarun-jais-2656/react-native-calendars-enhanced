@@ -3,33 +3,36 @@ import { Calendar, CalendarUtils } from 'react-native-calendars';
 import styles from './styles';
 import CustomModal from './component/modal';
 import { Image, Text, TouchableOpacity, View } from 'react-native';
-import { icons } from '../../assets/icons';
-import { dayNames, months, years } from '../../utils/calendarUtils';
 import { CustomCalendarProps, MarkedDates } from './@types';
+import { dayNames, months, years } from '../utils/constants/calendarUtils';
+import { icons } from '../assets/icons';
+import { colors } from '../utils/constants/colors';
 
 const MyCalendar: React.FC<CustomCalendarProps> = ({
     hasRange,
     nextActiveDays,
-    todayTextColor = '#00adf5',
+    todayTextColor = colors.CYAN,
     disableWeekends = false,
     disablePrevDates = false,
-    rangeDateColor = 'lightgreen',
+    rangeDateColor = colors.LIGHT_POWDER_BLUE,
     selectedColor,
-    startingDayColor = 'green',
-    endingDayColor = 'green',
+    startingDayColor = colors.PASTEL_BLUE,
+    endingDayColor = colors.PASTEL_BLUE,
+    dayNamesColor,
+    weekendDaysColor = colors.GRAY_500,
+    headerTittleColor = colors.INPUT_ACTIVE_COLOR,
+    headerIconColor,
+    getStartDate,
+    getEndDate,
+    getRange,
     ...props
 }) => {
     const [selectedStartDate, setSelectedStartDate] = useState<string>('');
     const [selectedEndDate, setSelectedEndDate] = useState<string>('');
-    const [isVisible, setIsVisible] = useState<boolean>(false);
     const [dropdownVisible, setDropdownVisible] = useState(false);
-    const [dropdownVisible1, setDropdownVisible1] = useState(false);
     const INITIAL_DATE = new Date().toISOString().split('T')[0];
+    const [dataType, setDataType] = useState('')
     const customHeaderProps: any = useRef();
-
-    const toggleCalendar = () => {
-        setIsVisible((prev) => !prev);
-    };
 
     const formatMonth = (date: string) => {
         const month = new Date(date);
@@ -51,18 +54,32 @@ const MyCalendar: React.FC<CustomCalendarProps> = ({
     const rangeDayPress = (day: { dateString: string }) => {
         if (selectedStartDate && selectedEndDate) {
             setSelectedStartDate(day.dateString);
+            if (getStartDate) {
+                getStartDate(day.dateString);
+            }
             setSelectedEndDate('');
         } else if (selectedStartDate) {
             if (selectedStartDate < day.dateString) {
                 setSelectedEndDate(day.dateString);
+                if (getEndDate) {
+                    getEndDate(day.dateString);
+                }
+            }else{
+            setSelectedStartDate(day.dateString)
             }
         } else {
             setSelectedStartDate(day.dateString);
+            if (getStartDate) {
+                getStartDate(day.dateString);
+            }
         }
     };
 
     const sigleDayPress = (day: { dateString: string }) => {
         setSelectedStartDate(day.dateString);
+        if (getStartDate) {
+            getStartDate(day.dateString);
+        }
     };
 
     const getDatesInRange = (startDate: string, endDate: string): string[] => {
@@ -75,6 +92,13 @@ const MyCalendar: React.FC<CustomCalendarProps> = ({
         }
         return dates;
     };
+
+    useMemo(() => {
+        if (selectedStartDate && selectedEndDate && getRange) {
+            const datesInRange = getDatesInRange(selectedStartDate, selectedEndDate);
+            getRange(datesInRange);
+        }
+    }, [selectedStartDate, selectedEndDate, getRange]);
 
     const markedDates: MarkedDates = useMemo(() => {
         const marked: MarkedDates = {};
@@ -112,14 +136,15 @@ const MyCalendar: React.FC<CustomCalendarProps> = ({
         setCustomHeaderNewMonth(false, 1);
     };
     const openMonth = () => {
+        setDataType('month')
         setDropdownVisible(!dropdownVisible);
     };
     const openYear = () => {
-        setDropdownVisible1(!dropdownVisible1);
+        setDataType('year')
+        setDropdownVisible(!dropdownVisible);
     };
 
     const getMonthNumber = (monthString: string) => {
-        console.log(monthString)
         return months.indexOf(monthString);
     };
     const [currentMonthStr, currentYearStr] = currentMonth.split('-');
@@ -134,7 +159,6 @@ const MyCalendar: React.FC<CustomCalendarProps> = ({
             } else {
                 setCustomHeaderNewMonth(true, monthDifference);
             }
-            setDropdownVisible(false);
         } else {
             const target = parseInt(item);
             let yearDifference = target - currentYearNumber;
@@ -143,8 +167,8 @@ const MyCalendar: React.FC<CustomCalendarProps> = ({
             } else {
                 setCustomHeaderNewMonth(true, 12 * yearDifference);
             }
-            setDropdownVisible1(false);
         }
+        setDropdownVisible(false);
     };
 
     const CustomHeader = React.forwardRef((props, ref) => {
@@ -154,24 +178,29 @@ const MyCalendar: React.FC<CustomCalendarProps> = ({
             <View ref={ref} {...props} style={styles.customHeader}>
                 <View style={styles.customSubHeader}>
                     <TouchableOpacity onPress={movePrevious}>
-                        <Image source={icons.arrowPrev} style={styles.img} />
+                        <Image source={icons.arrowPrev} style={[styles.img, { tintColor: headerIconColor }]} />
                     </TouchableOpacity>
                     <View style={{ flexDirection: 'row' }}>
                         <TouchableOpacity onPress={openMonth}>
-                            <Text style={styles.month}>{currentMonthStr}</Text>
+                            <Text style={[styles.month, { color: headerTittleColor }]}>{currentMonthStr}</Text>
                         </TouchableOpacity>
                         <TouchableOpacity onPress={openYear}>
-                            <Text style={styles.month}>-{currentYearStr}</Text>
+                            <Text style={[styles.month, { color: headerTittleColor }]}>-{currentYearStr}</Text>
                         </TouchableOpacity>
                     </View>
                     <TouchableOpacity onPress={moveNext}>
-                        <Image source={icons.arrowNext} style={styles.img} />
+                        <Image source={icons.arrowNext} style={[styles.img, { tintColor: headerIconColor }]} />
                     </TouchableOpacity>
                 </View>
                 <View style={styles.customSubHeader}>
-                    {dayNames.map((day, index) => (
-                        <Text key={index} style={styles.dayName}>{day}</Text>
-                    ))}
+                    {dayNames.map((day, index) => {
+                        const color = dayNamesColor ? dayNamesColor : (index === 5 || index === 6) ? weekendDaysColor : colors.GRAY_500;
+                        return (
+                            <Text key={index} style={[styles.dayName, { color: color }]}>
+                                {day}
+                            </Text>
+                        );
+                    })}
                 </View>
             </View>
         );
@@ -179,97 +208,64 @@ const MyCalendar: React.FC<CustomCalendarProps> = ({
 
     return (
         <View style={styles.container}>
-            <View style={styles.selectDateMainView}>
-                {hasRange ?
-                    <React.Fragment>
-                        <TouchableOpacity style={styles.selectDateViewSize} onPress={toggleCalendar}>
-                            <View style={styles.selectDateView}>
-                                <Text style={styles.txt}>From</Text>
-                                {selectedStartDate === '' ? (
-                                    <Text style={styles.txt1}>Select date</Text>
-                                ) : (
-                                    <Text style={styles.txt1}>{selectedStartDate}</Text>
-                                )}
-                            </View>
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.selectDateViewSize} onPress={toggleCalendar}>
-                            <View style={styles.selectDateView}>
-                                <Text style={styles.txt}>To</Text>
-                                {selectedEndDate === '' ? (
-                                    <Text style={styles.txt1}>Select date</Text>
-                                ) : (
-                                    <Text style={styles.txt1}>{selectedEndDate}</Text>
-                                )}
-                            </View>
-                        </TouchableOpacity>
-                    </React.Fragment>
-                    :
-                    <TouchableOpacity style={styles.selectDateViewSize} onPress={toggleCalendar}>
-                        <View style={styles.selectDateView}>
-                            {selectedStartDate === '' ? (
-                                <Text style={styles.txt1}>Select date</Text>
-                            ) : (
-                                <Text style={styles.txt1}>{selectedStartDate}</Text>
-                            )}
-                        </View>
-                    </TouchableOpacity>
-                }
-            </View>
-            {isVisible && (
-                hasRange ? (
-                    <Calendar
-                        markingType="period"
-                        markedDates={markedDates}
-                        onDayPress={rangeDayPress}
-                        style={styles.calView}
-                        enableSwipeMonths
-                        customHeader={CustomHeader}
-                        maxDate={str}
-                        minDate={disablePrevDates ? INITIAL_DATE : ''}
-                        theme={{
-                            calendarBackground: '#ffffff',
-                            selectedDayTextColor: '#ffffff',
-                            todayTextColor: todayTextColor,
-                        }}
-                        firstDay={1}
-                        disabledByWeekDays={disableWeekends ? [6, 0] : []}
-                        disableAllTouchEventsForDisabledDays
-                        {...props}
-                    />
-                ) : (
-                    <Calendar
-                        markedDates={{
-                            [selectedStartDate]: { selected: true, selectedColor: selectedColor, disableTouchEvent: true }
-                        }}
-                        onDayPress={sigleDayPress}
-                        style={styles.calView}
-                        enableSwipeMonths
-                        customHeader={CustomHeader}
-                        maxDate={str}
-                        minDate={disablePrevDates ? INITIAL_DATE : ''}
-                        theme={{
-                            calendarBackground: '#ffffff',
-                            selectedDayTextColor: '#ffffff',
-                            todayTextColor: todayTextColor,
-                        }}
-                        firstDay={1}
-                        disabledByWeekDays={disableWeekends ? [6, 0] : []}
-                        disableAllTouchEventsForDisabledDays
-                        {...props}
-                    />
-                )
-            )}
+            {hasRange ?
+                <Calendar
+                    markingType="period"
+                    markedDates={markedDates}
+                    onDayPress={rangeDayPress}
+                    style={styles.calView}
+                    enableSwipeMonths
+                    customHeader={CustomHeader}
+                    maxDate={str}
+                    minDate={disablePrevDates ? INITIAL_DATE : ''}
+                    theme={{
+                        calendarBackground: '#ffffff',
+                        selectedDayTextColor: '#ffffff',
+                        todayTextColor: todayTextColor,
+                    }}
+                    firstDay={1}
+                    disabledByWeekDays={disableWeekends ? [6, 0] : []}
+                    disableAllTouchEventsForDisabledDays
+                    {...props}
+                />
+                :
+                <Calendar
+                    markedDates={{
+                        [selectedStartDate]: { selected: true, selectedColor: selectedColor, disableTouchEvent: true }
+                    }}
+                    onDayPress={sigleDayPress}
+                    style={styles.calView}
+                    enableSwipeMonths
+                    customHeader={CustomHeader}
+                    maxDate={str}
+                    minDate={disablePrevDates ? INITIAL_DATE : ''}
+                    theme={{
+                        calendarBackground: '#ffffff',
+                        selectedDayTextColor: '#ffffff',
+                        todayTextColor: todayTextColor,
+                    }}
+                    firstDay={1}
+                    disabledByWeekDays={disableWeekends ? [6, 0] : []}
+                    disableAllTouchEventsForDisabledDays
+                    {...props}
+                />
+            }
             <CustomModal
                 isVisible={dropdownVisible}
                 onClose={() => setDropdownVisible(false)}
-                data={months}
+                data={dataType === 'month' ? months : years}
+                dataType={dataType}
                 onSelect={selectMonth}
-            />
-            <CustomModal
-                isVisible={dropdownVisible1}
-                onClose={() => setDropdownVisible1(false)}
-                data={years}
-                onSelect={selectMonth}
+                currentItem={{
+                    month: {
+                        index: getMonthNumber(currentMonthStr),
+                        label: currentMonthStr || new Date().getMonth()
+                    },
+                    year: {
+                        index: +currentYearStr - 1961,
+                        label: currentYearStr || new Date().getFullYear()
+                    }
+                }}
             />
         </View>
     );

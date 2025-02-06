@@ -1,6 +1,6 @@
 import { StyleSheet } from "react-native";
-import { screenWidth, vh, vw } from "../../utils/dimensions";
-import { colors } from "../../utils/constants/colors";
+import { screenWidth, vh, vw } from "../utils/dimensions";
+import { colors } from "../utils/constants/colors";
 
 const styles = StyleSheet.create({
     container: {
@@ -61,10 +61,8 @@ const styles = StyleSheet.create({
     month:{
         fontSize:16,
         fontWeight:'600',
-        color:colors.INPUT_ACTIVE_COLOR
     },
     dayName:{
-        color:'gray',
         fontSize: 13,
         width: vw(screenWidth/7.61)
     }

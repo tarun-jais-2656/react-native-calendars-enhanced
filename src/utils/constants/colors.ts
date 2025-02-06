@@ -38,4 +38,10 @@ export const colors = {
 
     INPUT_INACTIVE_COLOR: '#C4C4C4',
     INPUT_ACTIVE_COLOR: '#007AFF',
+
+
+    // extra colors
+    CYAN: '#00adf5',
+    PASTEL_BLUE: '#67b9d9',
+    LIGHT_POWDER_BLUE: '#ccedfa'
 } as const;
