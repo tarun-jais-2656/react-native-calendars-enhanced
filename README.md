@@ -188,4 +188,4 @@ export default App;
 
 ## License
 
-Your package is MIT licensed.
+Your package is ISC licensed.

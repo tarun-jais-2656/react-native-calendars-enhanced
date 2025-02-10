@@ -64,7 +64,6 @@ const styles = StyleSheet.create({
     },
     dayName:{
         fontSize: 13,
-        width: vw(screenWidth/7.61)
     }
 })
 export default styles;
